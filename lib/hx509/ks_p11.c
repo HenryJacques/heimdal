@@ -343,7 +343,7 @@ p11_init_slot(hx509_context context,
     if (ret) {
 	hx509_set_error_string(context, 0, HX509_PKCS11_NO_TOKEN,
 			       "Failed to init PKCS11 slot %d "
-			       "with error 0x08x",
+			       "with error 0x08%x",
 			       num, ret);
 	return HX509_PKCS11_NO_TOKEN;
     }
@@ -459,7 +459,18 @@ p11_get_session(hx509_context context,
 				       "Failed to login on slot id %d "
 				       "with error: 0x%08x",
 				       (int)slot->id, ret);
-	    return HX509_PKCS11_LOGIN;
+	    switch(ret)	{
+		 case CKR_PIN_LOCKED:
+			return HX509_PKCS11_PIN_LOCKED;
+		case CKR_PIN_INVALID:
+			return HX509_PKCS11_PIN_INVALID;
+		case CKR_PIN_INCORRECT:
+			return HX509_PKCS11_PIN_INCORRECT;
+		case CKR_USER_PIN_NOT_INITIALIZED:
+			return HX509_PKCS11_USER_PIN_NOT_INITIALIZED;
+		default:
+			return HX509_PKCS11_LOGIN;
+		}
 	} else
 	    slot->flags |= P11_LOGIN_DONE;
 
